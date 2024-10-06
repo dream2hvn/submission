@@ -50,4 +50,28 @@ st.header('Top Sellers by Number of Products Sold')
 top_sellers = data['seller_id'].value_counts().head(10)
 st.bar_chart(top_sellers)
 
+# 6. Customer Segmentation by Spending Behavior
+st.header('Customer Segmentation by Spending Behavior')
+
+# Define spending segments
+bins = [0, 50, 200, float('inf')]
+labels = ['Low Spender', 'Medium Spender', 'High Spender']
+
+# Add total spending per order
+data['total_spending'] = data['price'] + data['freight_value']
+
+# Segment customers
+data['spending_segment'] = pd.cut(data['total_spending'], bins=bins, labels=labels, include_lowest=True)
+spending_segment_counts = data['spending_segment'].value_counts()
+st.bar_chart(spending_segment_counts)
+
+# 7. Segmentation by Favorite Product Category
+st.header('Customer Segmentation by Favorite Product Category')
+
+# Group by product categories and count
+fav_category = data.groupby('product_category_name')['order_id'].count().nlargest(10)
+st.bar_chart(fav_category)
+
+st.write("This dashboard also analyzes customer segmentations based on their spending behavior and preferences for different product categories.")
+
 st.write("This dashboard analyzes customer purchasing behavior, providing insights into popular product categories, revenue generation, and shipping cost patterns.")
