@@ -58,48 +58,9 @@ plt.ylabel('Total Sales ($)')
 st.pyplot(fig2)
 
 # Title and description
-st.title('Overview of sales, customer behavior, shipping, and product category breakdown.')
+st.title('Overview of Customer behavior and product category breakdown.')
 
-# 1. Sales Overview
-total_sales = data['price'].sum()
-total_freight = data['freight_value'].sum()
-unique_orders = data['order_id'].nunique()
-
-st.subheader('Sales Overview')
-st.metric(label='Total Sales', value=f"${total_sales:,.2f}")
-st.metric(label='Total Freight Value', value=f"${total_freight:,.2f}")
-st.metric(label='Unique Orders', value=f"{unique_orders:,}")
-
-# 2. Category Breakdown
-st.subheader('Sales by Category')
-category_sales = data.groupby('product_category_name')['price'].sum().sort_values(ascending=False)
-
-# Plot category sales
-fig, ax = plt.subplots()
-category_sales.plot(kind='bar', ax=ax)
-plt.title('Sales by Product Category')
-plt.ylabel('Total Sales ($)')
-st.pyplot(fig)
-
-# 3. Shipping Analysis
-st.subheader('Shipping Overview')
-shipping_times = pd.to_datetime(data['shipping_limit_date']) - pd.Timestamp.now()
-
-shipping_times_days = shipping_times.dt.days
-st.bar_chart(shipping_times_days)
-
-# 4. Seller Performance
-st.subheader('Sales by Seller')
-seller_sales = data.groupby('seller_id')['price'].sum().sort_values(ascending=False)
-
-# Plot seller performance
-fig2, ax2 = plt.subplots()
-seller_sales.head(10).plot(kind='bar', ax=ax2)
-plt.title('Top 10 Sellers by Sales')
-plt.ylabel('Total Sales ($)')
-st.pyplot(fig2)
-
-# 5. Customer Behavior
+# 3. Customer Behavior
 # Assuming each `order_id` represents a unique customer for now
 
 st.subheader('Customer Behavior Analysis')
