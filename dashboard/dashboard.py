@@ -12,7 +12,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Load data
-data = pd.read_csv('/full/path/to/main_data.csv')
+data = pd.read_csv('dashboard/main_data.csv')
 
 # Title and description
 st.title('E-commerce Dashboard')
