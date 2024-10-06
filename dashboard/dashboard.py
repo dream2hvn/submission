@@ -18,66 +18,36 @@ data = pd.read_csv('dashboard/main_data.csv')
 st.title('E-commerce Dashboard')
 st.write('Overview of sales, shipping, and product category breakdown.')
 
-# 1. Sales Overview
-total_sales = data['price'].sum()
-total_freight = data['freight_value'].sum()
-unique_orders = data['order_id'].nunique()
+# Convert shipping_limit_date to datetime
+data['shipping_limit_date'] = pd.to_datetime(data['shipping_limit_date'])
 
-st.subheader('Sales Overview')
-st.metric(label='Total Sales', value=f"${total_sales:,.2f}")
-st.metric(label='Total Freight Value', value=f"${total_freight:,.2f}")
-st.metric(label='Unique Orders', value=f"{unique_orders:,}")
+# 1. Top Product Categories
+st.header('Top Product Categories by Number of Orders')
+category_counts = data['product_category_name'].value_counts().head(10)
+st.bar_chart(category_counts)
 
-# 2. Category Breakdown
-st.subheader('Sales by Category')
-category_sales = data.groupby('product_category_name')['price'].sum().sort_values(ascending=False)
+# 2. Revenue by Product Category
+st.header('Revenue by Product Category')
+revenue_by_category = data.groupby('product_category_name')['price'].sum().sort_values(ascending=False).head(10)
+st.bar_chart(revenue_by_category)
 
-# Plot category sales
+# 3. Shipping Cost vs. Product Price
+st.header('Shipping Cost vs. Product Price')
 fig, ax = plt.subplots()
-category_sales.plot(kind='bar', ax=ax)
-plt.title('Sales by Product Category')
-plt.ylabel('Total Sales ($)')
+ax.scatter(data['price'], data['freight_value'], alpha=0.5)
+ax.set_xlabel('Product Price')
+ax.set_ylabel('Freight Value (Shipping Cost)')
+ax.set_title('Shipping Cost vs Product Price')
 st.pyplot(fig)
 
-# 3. Shipping Analysis (just an overview)
-st.subheader('Shipping Overview')
-shipping_times = pd.to_datetime(data['shipping_limit_date']) - pd.Timestamp.now()
+# 4. Order Frequency Over Time
+st.header('Order Frequency Over Time')
+order_freq = data.set_index('shipping_limit_date').resample('M')['order_id'].count()
+st.line_chart(order_freq)
 
-shipping_times_days = shipping_times.dt.days
-st.bar_chart(shipping_times_days)
+# 5. Top Sellers by Number of Products Sold
+st.header('Top Sellers by Number of Products Sold')
+top_sellers = data['seller_id'].value_counts().head(10)
+st.bar_chart(top_sellers)
 
-# 4. Seller Performance
-st.subheader('Sales by Seller')
-seller_sales = data.groupby('seller_id')['price'].sum().sort_values(ascending=False)
-
-# Plot seller performance
-fig2, ax2 = plt.subplots()
-seller_sales.head(10).plot(kind='bar', ax=ax2)
-plt.title('Top 10 Sellers by Sales')
-plt.ylabel('Total Sales ($)')
-st.pyplot(fig2)
-
-# Title and description
-st.title('Overview of Customer behavior and product category breakdown.')
-
-# 3. Customer Behavior
-# Assuming each `order_id` represents a unique customer for now
-
-st.subheader('Customer Behavior Analysis')
-
-# 5.1 Order Frequency
-order_counts = data.groupby('order_id').size()
-st.write(f"Total number of customers: {len(order_counts)}")
-st.bar_chart(order_counts)
-
-# 5.2 Average Purchase Value per Customer
-avg_purchase_value = data.groupby('order_id')['price'].sum().mean()
-st.metric(label='Average Purchase Value per Customer', value=f"${avg_purchase_value:,.2f}")
-
-# 5.3 Distribution of Purchase Frequency
-fig3, ax3 = plt.subplots()
-order_counts.value_counts().plot(kind='bar', ax=ax3)
-plt.title('Distribution of Order Frequency per Customer')
-plt.xlabel('Number of Orders')
-plt.ylabel('Number of Customers')
-st.pyplot(fig3)
+st.write("This dashboard analyzes customer purchasing behavior, providing insights into popular product categories, revenue generation, and shipping cost patterns.")
