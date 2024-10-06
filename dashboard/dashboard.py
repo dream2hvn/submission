@@ -7,120 +7,52 @@ Original file is located at
     https://colab.research.google.com/drive/1jLkMBqEcYu9kGdH7GQN7AHa24ml_MEOH
 """
 
+import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
-import streamlit as st
-import pydeck as pdk
-import plotly.express as px
-
-# Set Seaborn style
-sns.set(style='dark')
 
 # Load data
-@st.cache_data
-def load_data():
-    return pd.read_csv('/content/drive/MyDrive/FINSUB COPY/main_data.csv')
+data = pd.read_csv('main_data.csv')
 
-data = load_data()
+# Title and description
+st.title('E-commerce Dashboard')
+st.write('Overview of sales, shipping, and product category breakdown.')
 
-def main():
-    st.title('E-commerce Dashboard')
+# 1. Sales Overview
+total_sales = data['price'].sum()
+total_freight = data['freight_value'].sum()
+unique_orders = data['order_id'].nunique()
 
-    # Sidebar for navigation
-    page = st.sidebar.selectbox("Choose a page", ["Product Analysis", "Customer Behavior", "Geographic Analysis"])
+st.subheader('Sales Overview')
+st.metric(label='Total Sales', value=f"${total_sales:,.2f}")
+st.metric(label='Total Freight Value', value=f"${total_freight:,.2f}")
+st.metric(label='Unique Orders', value=f"{unique_orders:,}")
 
-    if page == "Product Analysis":
-        product_analysis()
-    elif page == "Customer Behavior":
-        customer_behavior()
-    else:
-        geographic_analysis()
+# 2. Category Breakdown
+st.subheader('Sales by Category')
+category_sales = data.groupby('product_category_name')['price'].sum().sort_values(ascending=False)
 
-def product_analysis():
-    st.header('Product and Shipping Cost Analysis')
+# Plot category sales
+fig, ax = plt.subplots()
+category_sales.plot(kind='bar', ax=ax)
+plt.title('Sales by Product Category')
+plt.ylabel('Total Sales ($)')
+st.pyplot(fig)
 
-    # Top Product Categories
-    st.subheader('Top 10 Product Categories')
-    category_counts = data['product_category_name'].value_counts().head(10)
-    st.bar_chart(category_counts)
+# 3. Shipping Analysis (just an overview)
+st.subheader('Shipping Overview')
+shipping_times = pd.to_datetime(data['shipping_limit_date']) - pd.Timestamp.now()
 
-    # Price Distribution
-    st.subheader('Product Price Distribution')
-    fig, ax = plt.subplots()
-    ax.hist(data['price'], bins=20, color='skyblue')
-    ax.set_xlabel('Price')
-    ax.set_ylabel('Count')
-    st.pyplot(fig)
+shipping_times_days = shipping_times.dt.days
+st.bar_chart(shipping_times_days)
 
-    # Freight Value per Category
-    st.subheader('Average Shipping Cost per Product Category')
-    freight_by_category = data.groupby('product_category_name')['freight_value'].mean().sort_values(ascending=False).head(10)
-    st.bar_chart(freight_by_category)
+# 4. Seller Performance
+st.subheader('Sales by Seller')
+seller_sales = data.groupby('seller_id')['price'].sum().sort_values(ascending=False)
 
-def customer_behavior():
-    st.header('Customer Behavior Analysis')
-
-    # Top Sellers by Total Revenue
-    st.subheader('Top 10 Sellers by Total Revenue')
-    seller_revenue = data.groupby('seller_id')['price'].sum().sort_values(ascending=False).head(10)
-    st.bar_chart(seller_revenue)
-
-    # Distribution of Orders per Customer
-    st.subheader('Distribution of Orders per Customer')
-    customer_order_counts = data['order_id'].value_counts()
-    fig, ax = plt.subplots()
-    ax.hist(customer_order_counts, bins=20, color='lightblue')
-    ax.set_xlabel('Number of Orders per Customer')
-    ax.set_ylabel('Number of Customers')
-    st.pyplot(fig)
-
-    # Total Revenue by Customer
-    st.subheader('Top 10 Customers by Total Revenue')
-    customer_revenue = data.groupby('order_id')['price'].sum().sort_values(ascending=False).head(10)
-    st.bar_chart(customer_revenue)
-
-def geographic_analysis():
-    st.header('Geographic Analysis')
-
-    if 'latitude' in data.columns and 'longitude' in data.columns:
-        geo_data = data[['latitude', 'longitude']].dropna()
-
-        # PyDeck map
-        st.subheader('Customer Locations (Interactive Map)')
-        layer = pdk.Layer(
-            'ScatterplotLayer',
-            data=geo_data,
-            get_position=['longitude', 'latitude'],
-            get_radius=200,
-            get_color=[255, 0, 0],
-            pickable=True,
-        )
-        view_state = pdk.ViewState(
-            latitude=geo_data['latitude'].mean(),
-            longitude=geo_data['longitude'].mean(),
-            zoom=10,
-            pitch=50,
-        )
-        deck = pdk.Deck(
-            layers=[layer],
-            initial_view_state=view_state,
-            tooltip={"text": "Latitude: {latitude}\nLongitude: {longitude}"},
-        )
-        st.pydeck_chart(deck)
-
-        # Plotly scatter plot
-        st.subheader('Customer Location Distribution')
-        fig = px.scatter_geo(geo_data,
-                             lat='latitude',
-                             lon='longitude',
-                             hover_name='latitude',
-                             hover_data=['longitude'],
-                             title='Customer Geographic Distribution',
-                             projection="natural earth")
-        st.plotly_chart(fig)
-    else:
-        st.write("Data does not contain 'latitude' and 'longitude' columns.")
-
-if __name__ == "__main__":
-    main()
+# Plot seller performance
+fig2, ax2 = plt.subplots()
+seller_sales.head(10).plot(kind='bar', ax=ax2)
+plt.title('Top 10 Sellers by Sales')
+plt.ylabel('Total Sales ($)')
+st.pyplot(fig2)
