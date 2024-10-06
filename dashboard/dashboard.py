@@ -72,6 +72,4 @@ st.header('Customer Segmentation by Favorite Product Category')
 fav_category = data.groupby('product_category_name')['order_id'].count().nlargest(10)
 st.bar_chart(fav_category)
 
-st.write("This dashboard also analyzes customer segmentations based on their spending behavior and preferences for different product categories.")
-
-st.write("This dashboard analyzes customer purchasing behavior, providing insights into popular product categories, revenue generation, and shipping cost patterns.")
+st.write("This dashboard analyzes customer buying behavior, popular product categories, revenue generation, shipping cost patterns and also analyzes customer segmentation based on their shopping behavior and preferences for different product categories.")
