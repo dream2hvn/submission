@@ -14,9 +14,6 @@ import streamlit as st
 import pydeck as pdk
 import plotly.express as px
 
-from google.colab import drive
-drive.mount('/content/drive')
-
 # Set Seaborn style
 sns.set(style='dark')
 
